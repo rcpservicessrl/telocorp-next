@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+:root {
+  --c-bg: #0a0f1a;
+  --c-surface: #111827;
+  --c-surface-2: #1f2937;
+  --c-border: rgba(255, 255, 255, 0.08);
+  --c-text: #f1f5f9;
+  --c-text-muted: #94a3b8;
+  --c-primary: #dc2626;
+  --c-sales: #f97316;
+  --c-educa: #8b5cf6;
+  --c-lleva: #f59e0b;
+  --c-repara: #a855f7;
+  --c-instala: #22c55e;
+  --c-success: #22c55e;
+  --c-danger: #ef4444;
+}
+
+body {
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: 'Inter', system-ui, sans-serif;
+}
