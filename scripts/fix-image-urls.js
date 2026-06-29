@@ -1,10 +1,13 @@
-// Fix product image URLs — remove leading slash so template builds correctly
+// Point product images to GitHub raw URLs (already uploaded)
 const { createClient } = require('@supabase/supabase-js')
 
 const sb = createClient(
   'https://bhdictzvboiojyxorfiq.supabase.co',
   'sb_publishable_AgpNN0k_KfW0moe6f1CKXg_qP2GKJCm'
 )
+
+// GitHub raw URL base for the images
+const GITHUB_RAW = 'https://raw.githubusercontent.com/rcpservicessrl/telocorp-next/master/public/TeloCorp/images'
 
 async function main() {
   const { data: products } = await sb.from('products').select('id, title, image, images')
@@ -15,16 +18,18 @@ async function main() {
     let newImage = p.image || ''
     let newImages = p.images || []
     
-    // Remove leading slash: /TeloCorp/... → TeloCorp/...
-    if (newImage.startsWith('/TeloCorp/')) {
-      newImage = newImage.slice(1) // Remove leading /
+    // Fix: TeloCorp/images/imageX.png → GitHub raw URL
+    if (newImage.startsWith('TeloCorp/images/')) {
+      const filename = newImage.replace('TeloCorp/images/', '')
+      newImage = `${GITHUB_RAW}/${filename}`
       needsUpdate = true
     }
     
     newImages = newImages.map(img => {
-      if (img.startsWith('/TeloCorp/')) {
+      if (img.startsWith('TeloCorp/images/')) {
         needsUpdate = true
-        return img.slice(1)
+        const filename = img.replace('TeloCorp/images/', '')
+        return `${GITHUB_RAW}/${filename}`
       }
       return img
     })
@@ -34,13 +39,13 @@ async function main() {
       if (error) {
         console.log(`[ERROR] ${p.title}: ${error.message}`)
       } else {
-        console.log(`[FIXED] ${p.title} → ${newImage}`)
+        console.log(`[FIXED] ${p.title}`)
         fixed++
       }
     }
   }
   
-  console.log(`\n✅ ${fixed} productos actualizados`)
+  console.log(`\n✅ ${fixed} productos → GitHub raw URLs`)
 }
 
 main()
