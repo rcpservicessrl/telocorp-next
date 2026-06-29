@@ -24,12 +24,22 @@ function LoginForm() {
     setError('')
     setLoading(true)
 
-    const { error } = await signIn(email, password)
-    if (error) {
-      setError(error)
+    try {
+      const { error } = await signIn(email, password)
+      if (error) {
+        setError(error)
+        setLoading(false)
+      } else {
+        // Force a router refresh so middleware picks up the new session cookie
+        router.refresh()
+        // Small delay to let cookies propagate, then navigate
+        setTimeout(() => {
+          window.location.href = redirect
+        }, 500)
+      }
+    } catch (err) {
+      setError('Error de conexión. Verifica tu internet.')
       setLoading(false)
-    } else {
-      router.push(redirect)
     }
   }
 
