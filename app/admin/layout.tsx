@@ -1,23 +1,24 @@
 import { createSupabaseServer } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import { headers } from 'next/headers'
 import { AdminSidebar } from '@/components/admin/sidebar'
 
 /**
- * Admin layout — only accessible by users with admin/org roles.
- * The /admin/login page bypasses this via middleware (no user required).
+ * Admin layout — completely separate from client.
+ * No Header, no Footer, no ChatWidget from client side.
+ * The middleware handles redirects for unauthenticated users.
  */
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  // Check if this is the login page — if so, render without sidebar
-  const headersList = await headers()
-  const pathname = headersList.get('x-pathname') || ''
-
   const supabase = await createSupabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // If no user, the only admin page accessible is /admin/login
+  // No user → only /admin/login is accessible (middleware handles redirect)
+  // But if somehow they get here without auth, show children (login page)
   if (!user) {
-    return <>{children}</>
+    return (
+      <div className="min-h-screen">
+        {children}
+      </div>
+    )
   }
 
   // Check admin status
@@ -27,13 +28,23 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!isAdmin) redirect('/dashboard')
 
-  // Get user's accessible modules
   const modules = user.user_metadata?.modules as string[] | undefined
 
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)]">
+    <div className="flex min-h-screen">
       <AdminSidebar userEmail={user.email || ''} modules={modules} />
       <main className="flex-1 p-6 overflow-auto">
+        {/* Admin topbar */}
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-[var(--c-border)]">
+          <div className="flex items-center gap-3">
+            <img src="/assets/telocorpgroup-mark.png" alt="" className="h-7 w-7 rounded-lg" />
+            <span className="text-sm font-medium text-[var(--c-text-muted)]">Admin Panel</span>
+          </div>
+          <div className="flex items-center gap-3 text-sm text-[var(--c-text-dim)]">
+            <span>{user.email}</span>
+            <a href="/" target="_blank" className="text-xs text-[var(--c-info)] hover:underline">Ver sitio →</a>
+          </div>
+        </div>
         {children}
       </main>
     </div>

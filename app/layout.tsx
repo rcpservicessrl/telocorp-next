@@ -3,12 +3,8 @@ import { BRAND } from '@/lib/utils'
 import { AuthProvider } from '@/lib/auth-context'
 import { CartProvider } from '@/lib/cart-context'
 import { WishlistProvider } from '@/lib/wishlist-context'
-import { Header } from '@/components/layout/header'
-import { Footer } from '@/components/layout/footer'
-import { PromoBanner } from '@/components/layout/promo-banner'
-import { OrganizationJsonLd } from '@/components/seo/json-ld'
 import { RegisterSW } from '@/components/pwa/register-sw'
-import { ChatWidget } from '@/components/chat/chat-widget'
+import { ClientShell } from '@/components/layout/client-shell'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -34,18 +30,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es-DO">
       <body className="min-h-screen antialiased flex flex-col">
-        <OrganizationJsonLd />
         <RegisterSW />
         <AuthProvider>
           <CartProvider>
             <WishlistProvider>
-            <PromoBanner />
-            <Header />
-            <div className="flex-1">
-              {children}
-            </div>
-            <Footer />
-            <ChatWidget />
+              <ClientShell>
+                {children}
+              </ClientShell>
             </WishlistProvider>
           </CartProvider>
         </AuthProvider>
