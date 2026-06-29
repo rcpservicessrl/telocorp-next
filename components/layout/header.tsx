@@ -57,11 +57,20 @@ export function Header() {
                   </span>
                 </button>
                 <div className="absolute right-0 top-full mt-1 w-48 bg-[var(--c-surface)] border border-[var(--c-border)] rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                  {user.email?.endsWith('@telocg.com') && (
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[var(--c-surface-2)] rounded-t-xl font-medium text-[var(--c-warning)]"
+                    >
+                      <Settings size={16} />
+                      Admin Panel
+                    </Link>
+                  )}
                   <Link
                     href="/dashboard"
-                    className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[var(--c-surface-2)] rounded-t-xl"
+                    className={`flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[var(--c-surface-2)] ${!user.email?.endsWith('@telocg.com') ? 'rounded-t-xl' : ''}`}
                   >
-                    <Settings size={16} />
+                    <User size={16} />
                     Mi Panel
                   </Link>
                   <button
