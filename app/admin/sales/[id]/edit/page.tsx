@@ -18,10 +18,18 @@ export default async function EditProductPage({ params }: Props) {
 
   if (!product) notFound()
 
+  // Get existing categories for the datalist
+  const { data: allProducts } = await supabase
+    .from('products')
+    .select('category')
+    .eq('active', true)
+
+  const categories = [...new Set((allProducts || []).map(p => p.category).filter(Boolean))]
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Editar Producto</h1>
-      <ProductForm product={product} />
+      <ProductForm product={product} categories={categories} />
     </div>
   )
 }
