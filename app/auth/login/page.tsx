@@ -30,14 +30,9 @@ function LoginForm() {
         setError(error)
         setLoading(false)
       } else {
-        // Force a router refresh so middleware picks up the new session cookie
         router.refresh()
-        // Determine redirect: admins go to /admin, clients to /dashboard
-        const isAdmin = email.endsWith('@telocg.com')
-        const target = isAdmin ? '/admin' : redirect
-        // Small delay to let cookies propagate, then navigate
         setTimeout(() => {
-          window.location.href = target
+          window.location.href = redirect
         }, 500)
       }
     } catch (err) {
