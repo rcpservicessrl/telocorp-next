@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge'
 import { AddToCartButton } from '@/components/cart/add-to-cart-button'
 import { ProductJsonLd } from '@/components/seo/json-ld'
 import { RelatedProducts } from '@/components/products/related-products'
+import { ImageZoom } from '@/components/products/image-zoom'
+import { RecentlyViewed } from '@/components/products/recently-viewed'
+import { ProductDetailClient } from './product-detail-client'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -61,10 +64,8 @@ export default async function ProductPage({ params }: Props) {
         url={`https://telocg.com/products/${product.id}`}
       />
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Image */}
-        <div className="aspect-square bg-[var(--c-surface)] rounded-2xl overflow-hidden border border-[var(--c-border)]">
-          {imgUrl && <img src={imgUrl} alt={product.title} className="w-full h-full object-cover" />}
-        </div>
+        {/* Image with hover zoom */}
+        <ImageZoom src={imgUrl} alt={product.title} />
 
         {/* Info */}
         <div>
@@ -127,6 +128,8 @@ export default async function ProductPage({ params }: Props) {
       </div>
 
       <RelatedProducts currentId={product.id} category={product.category} />
+      <RecentlyViewed currentId={product.id} />
+      <ProductDetailClient productId={product.id} />
     </main>
   )
 }

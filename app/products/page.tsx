@@ -4,6 +4,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { ProductFilters } from '@/components/products/product-filters'
+import { SocialProof } from '@/components/products/social-proof'
+import { FlashSaleBanner } from '@/components/products/flash-sale-banner'
+import { WishlistButton } from '@/components/products/wishlist-button'
 
 export const metadata: Metadata = {
   title: `${BRAND.sales} — Tienda de Tecnología`,
@@ -75,14 +78,20 @@ export default async function ProductsPage({ searchParams }: Props) {
         <ProductFilters categories={categories} />
       </Suspense>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Flash sale countdown if products have discounts */}
+      <FlashSaleBanner
+        enabled={true}
+        productCount={(products || []).filter(p => p.discount > 0).length}
+      />
+
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
         {(products || []).map((p) => (
           <Link
             key={p.id}
             href={`/products/${p.id}`}
             className="bg-[var(--c-surface)] border border-[var(--c-border)] rounded-xl overflow-hidden hover:border-[var(--c-sales)] transition-colors group"
           >
-            <div className="aspect-square bg-[var(--c-surface-2)] overflow-hidden">
+            <div className="aspect-square bg-[var(--c-surface-2)] overflow-hidden relative">
               {p.image && (
                 <img
                   src={`https://wsrv.nl/?url=${encodeURIComponent(p.image.startsWith('http') ? p.image : `https://telocg.com/${p.image}`)}&w=400&output=webp&q=75`}
@@ -91,6 +100,12 @@ export default async function ProductsPage({ searchParams }: Props) {
                   loading="lazy"
                 />
               )}
+              {p.discount > 0 && (
+                <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">-{p.discount}%</span>
+              )}
+              <div className="absolute top-2 right-2">
+                <WishlistButton productId={p.id} size="sm" />
+              </div>
             </div>
             <div className="p-3">
               <h3 className="text-sm font-medium line-clamp-2">{p.title}</h3>
@@ -118,6 +133,12 @@ export default async function ProductsPage({ searchParams }: Props) {
           <p>No se encontraron productos{params.q ? ` para "${params.q}"` : ''}.</p>
         </div>
       )}
+
+      {/* Social proof popups */}
+      <SocialProof
+        products={(products || []).slice(0, 10).map(p => ({ title: p.title, image: p.image }))}
+        enabled={true}
+      />
     </main>
   )
 }

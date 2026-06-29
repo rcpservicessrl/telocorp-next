@@ -49,14 +49,22 @@ export function ChatWidget() {
       })
 
       if (!res.ok) {
+        if (res.status === 429) {
+          throw new Error('rate_limit')
+        }
         const errorText = await res.text()
         throw new Error(errorText || `Error ${res.status}`)
       }
 
       const data = await res.json()
       setMessages(prev => [...prev, { role: 'assistant', content: data.reply || data.response || 'No pude procesar tu pregunta. Intenta de nuevo.' }])
-    } catch (err) {
-      setMessages(prev => [...prev, { role: 'assistant', content: '⚠️ No pude conectar con el asistente. Intenta de nuevo o escríbenos por WhatsApp.' }])
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : ''
+      if (errorMessage === 'rate_limit') {
+        setMessages(prev => [...prev, { role: 'assistant', content: '⏳ El asistente está descansando (muchas consultas hoy). Intenta en unos minutos o escríbenos por WhatsApp: wa.me/18096860050' }])
+      } else {
+        setMessages(prev => [...prev, { role: 'assistant', content: '⚠️ No pude conectar con el asistente. Intenta de nuevo o escríbenos por WhatsApp.' }])
+      }
     }
 
     setLoading(false)
