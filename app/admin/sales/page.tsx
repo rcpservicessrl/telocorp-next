@@ -27,6 +27,12 @@ export default async function AdminSalesPage() {
         </div>
         <div className="flex gap-2">
           <Link
+            href="/admin/sales/inventory"
+            className="px-4 py-2 bg-[var(--c-surface-2)] border border-[var(--c-border)] text-sm font-medium rounded-lg hover:bg-[var(--c-surface-3)] transition-colors"
+          >
+            📊 Inventario XLSX
+          </Link>
+          <Link
             href="/admin/sales/orders"
             className="px-4 py-2 bg-[var(--c-surface-2)] border border-[var(--c-border)] text-sm font-medium rounded-lg hover:bg-[var(--c-surface-3)] transition-colors relative"
           >
