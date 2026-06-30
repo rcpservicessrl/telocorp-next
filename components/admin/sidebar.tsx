@@ -13,6 +13,9 @@ import {
   Settings,
   Building2,
   BarChart3,
+  UserCog,
+  Car,
+  Tags,
 } from 'lucide-react'
 import { cn, BRAND } from '@/lib/utils'
 
@@ -29,6 +32,9 @@ const ALL_SECTIONS = [
   { id: 'lleva', label: BRAND.lleva, icon: Truck, href: '/admin/lleva' },
   { id: 'repara', label: BRAND.repara, icon: Wrench, href: '/admin/repara' },
   { id: 'instala', label: BRAND.instala, icon: HardHat, href: '/admin/instala' },
+  { id: 'technicians', label: 'Técnicos', icon: UserCog, href: '/admin/technicians' },
+  { id: 'drivers', label: 'Conductores', icon: Car, href: '/admin/drivers' },
+  { id: 'categories', label: 'Categorías', icon: Tags, href: '/admin/categories' },
   { id: 'users', label: 'Usuarios', icon: Users, href: '/admin/users' },
   { id: 'orgs', label: 'Organizaciones', icon: Building2, href: '/admin/organizations' },
   { id: 'settings', label: 'Configuración', icon: Settings, href: '/admin/settings' },
