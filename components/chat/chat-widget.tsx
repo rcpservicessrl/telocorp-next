@@ -9,10 +9,44 @@ interface Message {
   content: string
 }
 
+const WHATSAPP = '8099038707'
+
+// Fallback responses when AI is unavailable
+const FALLBACK_RESPONSES: Record<string, string> = {
+  precio: `Los precios están en cada producto de la tienda. ¿Quieres ver el catálogo? 👉 telocg.com/products`,
+  envio: `Hacemos envíos express en 24-48h por toda RD. Envío gratis en compras +RD$5,000. Para cotizar un envío ve a telocg.com/lleva`,
+  envío: `Hacemos envíos express en 24-48h por toda RD. Envío gratis en compras +RD$5,000. Para cotizar un envío ve a telocg.com/lleva`,
+  reparar: `Reparamos celulares, laptops, TV y más con 90 días de garantía. Solicita aquí: telocg.com/repara/solicitar`,
+  repara: `Reparamos celulares, laptops, TV y más con 90 días de garantía. Solicita aquí: telocg.com/repara/solicitar`,
+  instalar: `Instalamos TV, A/C, cámaras, paneles solares y más. Agenda aquí: telocg.com/instala/solicitar`,
+  instala: `Instalamos TV, A/C, cámaras, paneles solares y más. Agenda aquí: telocg.com/instala/solicitar`,
+  curso: `Tenemos cursos de tecnología y reparación. Mira el catálogo: telocg.com/educa`,
+  educa: `Tenemos cursos de tecnología y reparación. Mira el catálogo: telocg.com/educa`,
+  pago: `Aceptamos CardNET (Visa/MC), transferencia bancaria y PayPal.`,
+  garantia: `Todos nuestros servicios de reparación tienen 90 días de garantía. Productos nuevos tienen garantía del fabricante.`,
+  garantía: `Todos nuestros servicios de reparación tienen 90 días de garantía. Productos nuevos tienen garantía del fabricante.`,
+  horario: `Atendemos Lunes a Sábado de 9AM a 6PM. WhatsApp disponible en horario extendido.`,
+  contacto: `Puedes contactarnos por WhatsApp: wa.me/${WHATSAPP} o por la tienda en telocg.com`,
+  whatsapp: `Nuestro WhatsApp es +1 (809) 903-8707. Escríbenos: wa.me/${WHATSAPP}`,
+  hola: `¡Hola! 👋 Soy el asistente de ${BRAND.group}. ¿En qué puedo ayudarte?\n\n🛒 Tienda\n🔧 Reparación\n🛠️ Instalación\n📦 Envíos\n🎓 Cursos`,
+  buenos: `¡Hola! 👋 ¿En qué puedo ayudarte hoy?`,
+  gracias: `¡De nada! Si necesitas algo más, aquí estamos. 😊`,
+}
+
+function getFallbackResponse(message: string): string {
+  const lower = message.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  
+  for (const [keyword, response] of Object.entries(FALLBACK_RESPONSES)) {
+    if (lower.includes(keyword)) return response
+  }
+  
+  return `Gracias por tu mensaje. Para una atención más rápida, escríbenos por WhatsApp: wa.me/${WHATSAPP}\n\nTambién puedes explorar:\n🛒 /products — Tienda\n🔧 /repara/solicitar — Reparación\n🛠️ /instala/solicitar — Instalación\n📦 /lleva/solicitar — Envíos`
+}
+
 export function ChatWidget() {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: `¡Hola! Soy el asistente de ${BRAND.group}. ¿En qué puedo ayudarte? 🛒🎓📦🔧🛠️` },
+    { role: 'assistant', content: `¡Hola! 👋 Soy el asistente de ${BRAND.group}. ¿En qué puedo ayudarte?\n\n🛒 Tienda · 🔧 Reparación · 🛠️ Instalación · 📦 Envíos · 🎓 Cursos` },
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -34,7 +68,7 @@ export function ChatWidget() {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-      if (!supabaseUrl || !supabaseKey) throw new Error('Config missing')
+      if (!supabaseUrl || !supabaseKey) throw new Error('no_config')
 
       const res = await fetch(`${supabaseUrl}/functions/v1/chat`, {
         method: 'POST',
@@ -49,22 +83,21 @@ export function ChatWidget() {
       })
 
       if (!res.ok) {
-        if (res.status === 429) {
-          throw new Error('rate_limit')
-        }
-        const errorText = await res.text()
-        throw new Error(errorText || `Error ${res.status}`)
+        // AI unavailable — use fallback
+        throw new Error('ai_unavailable')
       }
 
       const data = await res.json()
-      setMessages(prev => [...prev, { role: 'assistant', content: data.reply || data.response || 'No pude procesar tu pregunta. Intenta de nuevo.' }])
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : ''
-      if (errorMessage === 'rate_limit') {
-        setMessages(prev => [...prev, { role: 'assistant', content: '⏳ El asistente está descansando (muchas consultas hoy). Intenta en unos minutos o escríbenos por WhatsApp: wa.me/18096860050' }])
+      const reply = data.reply || data.response
+      if (reply) {
+        setMessages(prev => [...prev, { role: 'assistant', content: reply }])
       } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: '⚠️ No pude conectar con el asistente. Intenta de nuevo o escríbenos por WhatsApp.' }])
+        throw new Error('empty_response')
       }
+    } catch {
+      // Fallback: smart keyword-based response
+      const fallback = getFallbackResponse(userMessage)
+      setMessages(prev => [...prev, { role: 'assistant', content: fallback }])
     }
 
     setLoading(false)
@@ -101,7 +134,7 @@ export function ChatWidget() {
           <div className="flex-1 overflow-y-auto p-3 space-y-3">
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm ${
+                <div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm whitespace-pre-line ${
                   msg.role === 'user'
                     ? 'bg-[var(--c-primary)] text-white rounded-br-sm'
                     : 'bg-[var(--c-surface-2)] text-[var(--c-text)] rounded-bl-sm'
