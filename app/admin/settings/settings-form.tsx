@@ -12,7 +12,7 @@ interface SettingsFormProps {
 
 export function SettingsForm({ settings }: SettingsFormProps) {
   const [data, setData] = useState({
-    whatsapp_number: (settings?.whatsapp_number as string) || '18096860050',
+    whatsapp_number: (settings?.whatsapp_number as string) || '8099038707',
     delivery_time: (settings?.delivery_time as string) || '24-48 horas',
     shipping_cost: (settings?.shipping_cost as number) || 250,
     free_shipping_threshold: (settings?.free_shipping_threshold as number) || 5000,
@@ -25,6 +25,26 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     paypal_enabled: (settings?.paypal_enabled as boolean) || true,
   })
 
+  // Coupon management
+  const existingCoupons = (settings?.coupons || {}) as Record<string, number>
+  const [coupons, setCoupons] = useState<Record<string, number>>(existingCoupons)
+  const [newCouponCode, setNewCouponCode] = useState('')
+  const [newCouponDiscount, setNewCouponDiscount] = useState(10)
+
+  const addCoupon = () => {
+    const code = newCouponCode.trim().toUpperCase()
+    if (!code || newCouponDiscount <= 0) return
+    setCoupons({ ...coupons, [code]: newCouponDiscount })
+    setNewCouponCode('')
+    setNewCouponDiscount(10)
+  }
+
+  const removeCoupon = (code: string) => {
+    const updated = { ...coupons }
+    delete updated[code]
+    setCoupons(updated)
+  }
+
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -33,7 +53,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     setSaving(true)
     setMessage('')
 
-    const result = await saveSettings(data)
+    const result = await saveSettings({ ...data, coupons })
     setMessage(result.error || '✅ Configuración guardada')
     setSaving(false)
   }
@@ -113,12 +133,61 @@ export function SettingsForm({ settings }: SettingsFormProps) {
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <input type="checkbox" checked={data.chatbot_enabled} onChange={(e) => update('chatbot_enabled', e.target.checked)} />
-            Chatbot IA (Telo' Asistente)
+            Chatbot IA (Telo&apos; Asistente)
           </label>
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <input type="checkbox" checked={data.social_proof_enabled} onChange={(e) => update('social_proof_enabled', e.target.checked)} />
-            Social proof ("Juan compró hace 5 min")
+            Social proof (&quot;Juan compró hace 5 min&quot;)
           </label>
+        </div>
+      </Card>
+
+      {/* Coupons */}
+      <Card className="space-y-4 p-6">
+        <h2 className="font-semibold">Cupones de descuento</h2>
+
+        {/* Existing coupons */}
+        {Object.keys(coupons).length > 0 && (
+          <div className="space-y-2">
+            {Object.entries(coupons).map(([code, discount]) => (
+              <div key={code} className="flex items-center justify-between p-2 rounded-lg bg-[var(--c-surface-2)]">
+                <div className="flex items-center gap-3">
+                  <code className="text-sm font-mono font-bold">{code}</code>
+                  <span className="text-xs text-[var(--c-success)]">{discount}% OFF</span>
+                </div>
+                <button type="button" onClick={() => removeCoupon(code)} className="text-xs text-[var(--c-danger)] hover:underline">
+                  Eliminar
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add new coupon */}
+        <div className="flex gap-2 items-end">
+          <div className="flex-1">
+            <label className="block text-xs text-[var(--c-text-dim)] mb-1">Código</label>
+            <input
+              type="text"
+              value={newCouponCode}
+              onChange={(e) => setNewCouponCode(e.target.value.toUpperCase())}
+              placeholder="TELO10"
+              className="w-full h-9 px-3 bg-[var(--c-surface)] border border-[var(--c-border)] rounded-lg text-sm uppercase focus:outline-none focus:ring-1 focus:ring-[var(--c-info)]"
+            />
+          </div>
+          <div className="w-20">
+            <label className="block text-xs text-[var(--c-text-dim)] mb-1">% OFF</label>
+            <input
+              type="number"
+              value={newCouponDiscount}
+              onChange={(e) => setNewCouponDiscount(Number(e.target.value))}
+              min={1} max={100}
+              className="w-full h-9 px-2 bg-[var(--c-surface)] border border-[var(--c-border)] rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[var(--c-info)]"
+            />
+          </div>
+          <button type="button" onClick={addCoupon} className="h-9 px-3 text-sm bg-[var(--c-surface-2)] border border-[var(--c-border)] rounded-lg hover:bg-[var(--c-surface-3)]">
+            + Agregar
+          </button>
         </div>
       </Card>
 

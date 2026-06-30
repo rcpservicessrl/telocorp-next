@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { PaymentSelector, type PaymentMethod } from '@/components/payments/payment-selector'
+import { CouponInput } from '@/components/cart/coupon-input'
 import { placeOrder } from './actions'
 import Link from 'next/link'
 
@@ -16,7 +17,6 @@ export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart()
   const { user } = useAuth()
 
-  const [step, setStep] = useState<'info' | 'payment' | 'confirm'>('info')
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     phone: '',
@@ -25,11 +25,13 @@ export default function CheckoutPage() {
     city: 'Santo Domingo',
   })
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
+  const [couponCode, setCouponCode] = useState('')
+  const [couponDiscount, setCouponDiscount] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const shipping = subtotal >= 5000 ? 0 : 250
-  const total = subtotal + shipping
+  const total = subtotal - couponDiscount + shipping
 
   if (items.length === 0) {
     return (
@@ -55,6 +57,8 @@ export default function CheckoutPage() {
       items: items.map(i => ({ id: i.id, title: i.title, qty: i.quantity, price: i.price })),
       customer: customerInfo,
       subtotal,
+      discount: couponDiscount,
+      coupon: couponCode || null,
       shipping,
       total,
       payment_method: paymentMethod,
@@ -131,6 +135,17 @@ export default function CheckoutPage() {
             />
           </Card>
 
+          {/* Coupon */}
+          <Card className="p-6 space-y-3">
+            <h2 className="font-semibold">3. Cupón de descuento</h2>
+            <CouponInput
+              subtotal={subtotal}
+              onApply={(discount, code) => { setCouponDiscount(discount); setCouponCode(code) }}
+              onRemove={() => { setCouponDiscount(0); setCouponCode('') }}
+              appliedCode={couponCode}
+            />
+          </Card>
+
           {error && (
             <p className="text-sm text-[var(--c-danger)] bg-red-500/10 px-3 py-2 rounded-lg">{error}</p>
           )}
@@ -166,6 +181,12 @@ export default function CheckoutPage() {
                 <span className="text-[var(--c-text-muted)]">Subtotal</span>
                 <span>RD$ {subtotal.toLocaleString()}</span>
               </div>
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-[var(--c-success)]">
+                  <span>Cupón ({couponCode})</span>
+                  <span>-RD$ {couponDiscount.toLocaleString()}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-[var(--c-text-muted)]">Envío</span>
                 <span>{shipping === 0 ? 'GRATIS' : `RD$ ${shipping}`}</span>

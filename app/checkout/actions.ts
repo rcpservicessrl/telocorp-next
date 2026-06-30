@@ -6,6 +6,8 @@ interface PlaceOrderParams {
   items: { id: string; title: string; qty: number; price: number }[]
   customer: { name: string; phone: string; email: string; address: string; city: string }
   subtotal: number
+  discount: number
+  coupon: string | null
   shipping: number
   total: number
   payment_method: string
@@ -23,8 +25,8 @@ export async function placeOrder(params: PlaceOrderParams) {
       customer: params.customer,
       subtotal: params.subtotal,
       shipping: params.shipping,
-      discount: 0,
-      coupon: null,
+      discount: params.discount,
+      coupon: params.coupon,
       total: params.total,
       payment_method: params.payment_method,
       status: 'pending',
