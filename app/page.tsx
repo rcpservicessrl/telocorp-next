@@ -1,7 +1,18 @@
 import Link from 'next/link'
 import { BRAND, VERTICALS } from '@/lib/utils'
+import { createSupabaseServer } from '@/lib/supabase-server'
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createSupabaseServer()
+  
+  // Fetch featured/top products
+  const { data: featured } = await supabase
+    .from('products')
+    .select('id, title, price, image, discount, rating')
+    .eq('active', true)
+    .order('sold', { ascending: false })
+    .limit(4)
+
   return (
     <main className="max-w-5xl mx-auto px-4 py-12">
       {/* Hero */}
@@ -55,6 +66,43 @@ export default function HomePage() {
           </p>
         </Link>
       </section>
+
+      {/* Featured Products */}
+      {featured && featured.length > 0 && (
+        <section className="mb-16">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">🔥 Más vendidos</h2>
+            <Link href="/products" className="text-sm text-[var(--c-info)] hover:underline">Ver todo →</Link>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {featured.map((p) => (
+              <Link
+                key={p.id}
+                href={`/products/${p.id}`}
+                className="bg-[var(--c-surface)] border border-[var(--c-border)] rounded-xl overflow-hidden hover:border-[var(--c-sales)] transition-colors group"
+              >
+                <div className="aspect-square bg-[var(--c-surface-2)] overflow-hidden relative">
+                  {p.image && (
+                    <img
+                      src={`https://wsrv.nl/?url=${encodeURIComponent(p.image)}&w=300&output=webp&q=75`}
+                      alt={p.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                  )}
+                  {p.discount > 0 && (
+                    <span className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">-{p.discount}%</span>
+                  )}
+                </div>
+                <div className="p-2">
+                  <p className="text-xs line-clamp-1">{p.title}</p>
+                  <p className="text-sm font-bold text-[var(--c-sales)]">RD$ {p.price.toLocaleString()}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Value props */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">

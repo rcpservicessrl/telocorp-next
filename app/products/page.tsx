@@ -7,6 +7,7 @@ import { ProductFilters } from '@/components/products/product-filters'
 import { SocialProof } from '@/components/products/social-proof'
 import { FlashSaleBanner } from '@/components/products/flash-sale-banner'
 import { WishlistButton } from '@/components/products/wishlist-button'
+import { ProductCardQuickAdd } from '@/components/products/product-card-quick-add'
 
 export const metadata: Metadata = {
   title: `${BRAND.sales} — Tienda de Tecnología`,
@@ -106,6 +107,7 @@ export default async function ProductsPage({ searchParams }: Props) {
               <div className="absolute top-2 right-2">
                 <WishlistButton productId={p.id} size="sm" />
               </div>
+              <ProductCardQuickAdd product={{ id: p.id, title: p.title, price: p.price, image: p.image }} />
             </div>
             <div className="p-3">
               <h3 className="text-sm font-medium line-clamp-2">{p.title}</h3>

@@ -80,5 +80,18 @@ export async function placeOrder(params: PlaceOrderParams) {
     } catch {}
   }
 
+  // Send confirmation email (if Resend is configured)
+  if (params.customer.email) {
+    try {
+      const { sendEmail, emailTemplates } = await import('@/lib/email')
+      const template = emailTemplates.orderConfirmation(
+        order.id.slice(0, 8),
+        params.total,
+        params.items.map(i => `${i.title} x${i.qty} — RD$ ${(i.price * i.qty).toLocaleString()}`)
+      )
+      await sendEmail({ to: params.customer.email, ...template })
+    } catch {}
+  }
+
   return { error: null, orderId: order.id }
 }
