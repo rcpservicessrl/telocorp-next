@@ -10,6 +10,7 @@ import { RelatedProducts } from '@/components/products/related-products'
 import { ImageZoom } from '@/components/products/image-zoom'
 import { RecentlyViewed } from '@/components/products/recently-viewed'
 import { ProductDetailClient } from './product-detail-client'
+import { StickyAddToCart } from '@/components/products/sticky-add-to-cart'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -130,6 +131,7 @@ export default async function ProductPage({ params }: Props) {
       <RelatedProducts currentId={product.id} category={product.category} />
       <RecentlyViewed currentId={product.id} />
       <ProductDetailClient productId={product.id} />
+      <StickyAddToCart product={{ id: product.id, title: product.title, price: product.price, image: product.image }} />
     </main>
   )
 }

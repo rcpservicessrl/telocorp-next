@@ -73,5 +73,25 @@ export async function submitRepairRequest(params: RepairRequestParams) {
     } catch {}
   }
 
+  // If pickup_delivery mode → auto-create a Lleva request for device pickup
+  if (params.service_mode === 'pickup_delivery' && params.address) {
+    try {
+      await supabase.from('lleva_requests').insert({
+        pickup_address: params.address,
+        dropoff_address: 'Taller Telo\' Repara — Santo Domingo',
+        package_description: `Dispositivo para reparación: ${params.device_brand} ${params.device_model} (Ticket #${ticket.id.slice(0, 8)})`,
+        vehicle_type: 'motorcycle',
+        service_type: 'standard',
+        estimated_fare: 250,
+        customer_name: params.customer_name,
+        customer_phone: params.customer_phone,
+        pickup_contact: params.customer_phone,
+        dropoff_contact: '8099038707',
+        status: 'pending',
+        user_id: params.user_id,
+      })
+    } catch {}
+  }
+
   return { error: null, ticketId: ticket.id }
 }

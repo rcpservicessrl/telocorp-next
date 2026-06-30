@@ -6,6 +6,8 @@ import { Footer } from '@/components/layout/footer'
 import { PromoBanner } from '@/components/layout/promo-banner'
 import { ChatWidget } from '@/components/chat/chat-widget'
 import { OrganizationJsonLd } from '@/components/seo/json-ld'
+import { ExitPopup } from '@/components/products/exit-popup'
+import { GA4 } from '@/components/analytics/ga4'
 
 /**
  * Client shell — wraps all non-admin pages with Header, Footer, Chat, etc.
@@ -22,6 +24,7 @@ export function ClientShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <OrganizationJsonLd />
+      <GA4 />
       <PromoBanner />
       <Header />
       <div className="flex-1">
@@ -29,6 +32,7 @@ export function ClientShell({ children }: { children: React.ReactNode }) {
       </div>
       <Footer />
       <ChatWidget />
+      <ExitPopup />
     </>
   )
 }

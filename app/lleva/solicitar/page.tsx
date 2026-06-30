@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { BRAND } from '@/lib/utils'
+import { AddressInput } from '@/components/maps/address-input'
 import { submitDeliveryRequest } from './actions'
 
 const VEHICLE_TYPES = [
@@ -83,19 +84,17 @@ export default function SolicitarLlevaPage() {
         {/* Addresses */}
         <Card className="p-6 space-y-4">
           <h2 className="font-semibold">Direcciones</h2>
-          <Input
+          <AddressInput
             label="📍 Dirección de recogida"
             value={data.pickup_address}
-            onChange={(e) => setData({ ...data, pickup_address: e.target.value })}
-            required
-            placeholder="Calle, sector, ciudad"
+            onChange={(value) => setData({ ...data, pickup_address: value })}
+            placeholder="Buscar dirección de recogida..."
           />
-          <Input
+          <AddressInput
             label="📍 Dirección de entrega"
             value={data.dropoff_address}
-            onChange={(e) => setData({ ...data, dropoff_address: e.target.value })}
-            required
-            placeholder="Calle, sector, ciudad"
+            onChange={(value) => setData({ ...data, dropoff_address: value })}
+            placeholder="Buscar dirección de entrega..."
           />
           <Input
             label="Descripción del paquete"

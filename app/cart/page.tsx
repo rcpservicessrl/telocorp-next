@@ -10,8 +10,16 @@ import { Minus, Plus, Trash2 } from 'lucide-react'
 export default function CartPage() {
   const { items, updateQuantity, removeItem, subtotal, itemCount } = useCart()
 
-  const shipping = subtotal >= 5000 ? 0 : 250
-  const total = subtotal + shipping
+  // Quantity breaks: buy more, save more
+  const totalQty = items.reduce((sum, i) => sum + i.quantity, 0)
+  let qtyBreakDiscount = 0
+  let qtyBreakLabel = ''
+  if (totalQty >= 5) { qtyBreakDiscount = 10; qtyBreakLabel = '10% OFF por 5+ items' }
+  else if (totalQty >= 3) { qtyBreakDiscount = 5; qtyBreakLabel = '5% OFF por 3+ items' }
+
+  const qtyBreakAmount = Math.round(subtotal * (qtyBreakDiscount / 100))
+  const shipping = (subtotal - qtyBreakAmount) >= 5000 ? 0 : 250
+  const total = subtotal - qtyBreakAmount + shipping
 
   if (items.length === 0) {
     return (
@@ -87,6 +95,22 @@ export default function CartPage() {
                 <span className="text-[var(--c-text-muted)]">Subtotal</span>
                 <span>RD$ {subtotal.toLocaleString()}</span>
               </div>
+              {qtyBreakAmount > 0 && (
+                <div className="flex justify-between text-[var(--c-success)]">
+                  <span>{qtyBreakLabel}</span>
+                  <span>-RD$ {qtyBreakAmount.toLocaleString()}</span>
+                </div>
+              )}
+              {qtyBreakAmount === 0 && totalQty < 3 && (
+                <p className="text-xs text-[var(--c-educa)] bg-violet-500/10 px-2 py-1 rounded">
+                  💡 Agrega {3 - totalQty} más para 5% OFF
+                </p>
+              )}
+              {qtyBreakAmount === 0 && totalQty >= 3 && totalQty < 5 && (
+                <p className="text-xs text-[var(--c-educa)] bg-violet-500/10 px-2 py-1 rounded">
+                  💡 Agrega {5 - totalQty} más para 10% OFF
+                </p>
+              )}
               <div className="flex justify-between">
                 <span className="text-[var(--c-text-muted)]">Envío</span>
                 <span className={shipping === 0 ? 'text-[var(--c-success)]' : ''}>
