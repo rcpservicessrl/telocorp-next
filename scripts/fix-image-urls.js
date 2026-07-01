@@ -1,13 +1,11 @@
-// Point product images to GitHub raw URLs (already uploaded)
+// Restore product image URLs to point to Vercel static files (public/TeloCorp/images/)
+// This is the permanent solution — images in public/ are served by Vercel at https://telocg.com/TeloCorp/images/
 const { createClient } = require('@supabase/supabase-js')
 
 const sb = createClient(
   'https://bhdictzvboiojyxorfiq.supabase.co',
   'sb_publishable_AgpNN0k_KfW0moe6f1CKXg_qP2GKJCm'
 )
-
-// GitHub raw URL base for the images
-const GITHUB_RAW = 'https://raw.githubusercontent.com/rcpservicessrl/telocorp-next/master/public/TeloCorp/images'
 
 async function main() {
   const { data: products } = await sb.from('products').select('id, title, image, images')
@@ -18,18 +16,17 @@ async function main() {
     let newImage = p.image || ''
     let newImages = p.images || []
     
-    // Fix: TeloCorp/images/imageX.png → GitHub raw URL
-    if (newImage.startsWith('TeloCorp/images/')) {
-      const filename = newImage.replace('TeloCorp/images/', '')
-      newImage = `${GITHUB_RAW}/${filename}`
+    // Convert GitHub Raw URL back to Vercel static URL
+    if (newImage.includes('raw.githubusercontent.com/rcpservicessrl/telocorp-next/master/public/')) {
+      const filename = newImage.split('/public/')[1] // e.g. TeloCorp/images/image2.png
+      newImage = `https://telocg.com/${filename}`
       needsUpdate = true
     }
     
     newImages = newImages.map(img => {
-      if (img.startsWith('TeloCorp/images/')) {
-        needsUpdate = true
-        const filename = img.replace('TeloCorp/images/', '')
-        return `${GITHUB_RAW}/${filename}`
+      if (img.includes('raw.githubusercontent.com/rcpservicessrl/telocorp-next/master/public/')) {
+        const filename = img.split('/public/')[1]
+        return `https://telocg.com/${filename}`
       }
       return img
     })
@@ -39,13 +36,13 @@ async function main() {
       if (error) {
         console.log(`[ERROR] ${p.title}: ${error.message}`)
       } else {
-        console.log(`[FIXED] ${p.title}`)
+        console.log(`[FIXED] ${p.title} → ${newImage}`)
         fixed++
       }
     }
   }
   
-  console.log(`\n✅ ${fixed} productos → GitHub raw URLs`)
+  console.log(`\n✅ ${fixed} productos actualizados → telocg.com/TeloCorp/images/`)
 }
 
 main()
