@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { Sparkles, Plus, X, GripVertical } from 'lucide-react'
 import { saveProduct, deleteProduct, generateSpecs, generateDescription } from './actions'
+import { ImageUpload } from '@/components/admin/image-upload'
 
 interface ProductFormProps {
   product?: {
@@ -277,7 +278,11 @@ export function ProductForm({ product, categories = [] }: ProductFormProps) {
             Agregar
           </button>
         </div>
-        <p className="text-xs text-[var(--c-text-dim)]">La primera imagen será la principal. Arrastra para reordenar.</p>
+
+        {/* Upload directly to ImgBB */}
+        <ImageUpload onUploaded={(url) => setImages([...images, url])} />
+
+        <p className="text-xs text-[var(--c-text-dim)]">La primera imagen será la principal. Sube directamente o pega una URL.</p>
       </Card>
 
       {/* Specs */}
