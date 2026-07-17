@@ -16,6 +16,7 @@ import {
   UserCog,
   Car,
   Tags,
+  MessageSquare,
 } from 'lucide-react'
 import { cn, BRAND } from '@/lib/utils'
 
@@ -28,6 +29,7 @@ const ALL_SECTIONS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
   { id: 'analytics', label: 'Analíticas', icon: BarChart3, href: '/admin/analytics' },
   { id: 'sales', label: BRAND.sales, icon: ShoppingCart, href: '/admin/sales' },
+  { id: 'whatsapp', label: 'Importador WA', icon: MessageSquare, href: '/admin/sales/whatsapp' },
   { id: 'educa', label: BRAND.educa, icon: GraduationCap, href: '/admin/educa' },
   { id: 'lleva', label: BRAND.lleva, icon: Truck, href: '/admin/lleva' },
   { id: 'repara', label: BRAND.repara, icon: Wrench, href: '/admin/repara' },
