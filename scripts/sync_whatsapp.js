@@ -1,14 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 
-const srcDir = path.join(__dirname, '../temp_whatsapp');
+const srcDir = fs.existsSync(path.join(__dirname, '../Recursos')) ? path.join(__dirname, '../Recursos') : path.join(__dirname, '../temp_whatsapp');
 const destDir = path.join(__dirname, '../public/TeloCorp/images');
 const jsonDest = path.join(__dirname, '../public/whatsapp-products.json');
 
 function sync() {
   console.log('--- WhatsApp Catalog Sync Started ---');
   
-  // 1. Copy JPG images
   if (!fs.existsSync(srcDir)) {
     console.error(`Source directory does not exist: ${srcDir}`);
     return;
@@ -18,8 +17,18 @@ function sync() {
   }
 
   const files = fs.readdirSync(srcDir);
-  const jpgFiles = files.filter(f => f.toLowerCase().endsWith('.jpg'));
-  console.log(`Found ${jpgFiles.length} JPG images in WhatsApp backup.`);
+  // Filter out 0 byte files
+  const validFiles = files.filter(f => {
+    try {
+      const s = fs.statSync(path.join(srcDir, f));
+      return s.size > 0;
+    } catch (e) {
+      return false;
+    }
+  });
+
+  const jpgFiles = validFiles.filter(f => f.toLowerCase().endsWith('.jpg'));
+  console.log(`Found ${jpgFiles.length} valid non-zero JPG images in WhatsApp folder.`);
   
   let copied = 0;
   for (const file of jpgFiles) {
@@ -127,31 +136,49 @@ function sync() {
     const rawLines = combinedText.split('\n').map(l => l.trim()).filter(Boolean);
     if (rawLines.length === 0) continue;
     
-    let title = rawLines[0]
-      .replace(/^\*+/, '')
-      .replace(/\*+$/, '')
-      .replace(/^[🚨✅🔥👊🏽😍📌💎]+/g, '')
-      .replace(/[🚨✅🔥👊🏽😍📌💎]+$/g, '')
-      .trim();
-      
-    if ((title.toLowerCase().includes('vamos al game') || title.length < 3) && rawLines.length > 1) {
-      title = rawLines[1]
-        .replace(/^\*+/, '')
-        .replace(/\*+$/, '')
-        .replace(/^[🚨✅🔥👊🏽😍📌💎]+/g, '')
-        .replace(/[🚨✅🔥👊🏽😍📌💎]+$/g, '')
-        .trim();
+    const noisePatterns = [
+      /vamos\s+al\s+game/i,
+      /se\s+acab[oó]\s+el\s+descanso/i,
+      /diseñ?os?\s+disponibles/i,
+      /modelos?\s+disponibles/i,
+      /aprovechar\s+las\s+ofertas/i,
+      /l[aá]mina\s+de\s+diseñ?os?/i,
+      /disponibles?\s+aqu[ií]/i,
+      /quemarlo\s+ahora\s+mismo/i
+    ];
+
+    let candidateLines = rawLines.map(l => 
+      l.replace(/^\*+/, '')
+       .replace(/\*+$/, '')
+       .replace(/^[🚨✅🔥👊🏽😍📌💎🏡✨🎉📱🎮]+/g, '')
+       .replace(/[🚨✅🔥👊🏽😍📌💎🏡✨🎉📱🎮]+$/g, '')
+       .trim()
+    ).filter(l => l.length > 2);
+
+    // Find first line not matching noise
+    let titleLine = candidateLines.find(l => !noisePatterns.some(pat => pat.test(l)));
+
+    if (!titleLine && candidateLines.length > 0) {
+      // Fallback: clean noise out of first candidate line
+      titleLine = candidateLines[0];
+      for (const pat of noisePatterns) {
+        titleLine = titleLine.replace(pat, '').trim();
+      }
     }
-    
+
+    if (!titleLine || titleLine.length < 2) continue;
+
+    let title = titleLine;
     if (title.length > 80) {
       title = title.substring(0, 80) + '...';
     }
 
     let cost = 0;
     const pricePatterns = [
-      /(?:unidad|neto|costo|precio)\s*(?:mayor)?\s*\$?([0-9,.]+)/i,
+      /(?:unidad|neto|costo|precio)\s*(?:mayor)?\s*\$?\s*([0-9,.]+)/i,
       /\$\s*([0-9,.]+)/i,
-      /([0-9,.]+)\s*(?:pesos|rd)/i
+      /([0-9,.]+)\s*(?:pesos|rd)/i,
+      /costo\s*:?\s*([0-9,.]+)/i
     ];
     
     for (const pattern of pricePatterns) {
@@ -164,29 +191,48 @@ function sync() {
         }
       }
     }
-    
-    let price = 0;
-    if (cost > 0) {
-      if (cost < 200) {
-        price = cost * 2.5; // +150% markup
-      } else if (cost < 1000) {
-        price = cost * 2.0; // +100% markup
-      } else {
-        price = cost * 1.5; // +50% markup
-      }
-      price = Math.round(price / 10) * 10;
-    }
 
     let category = 'Accesorios';
     const lowerText = combinedText.toLowerCase();
     if (lowerText.includes('silla') || lowerText.includes('mesa') || lowerText.includes('playa')) {
       category = 'Mobiliario';
-    } else if (lowerText.includes('aro') || lowerText.includes('luz') || lowerText.includes('bombillo') || lowerText.includes('led') || lowerText.includes('lámpara')) {
+    } else if (lowerText.includes('aro') || lowerText.includes('luz') || lowerText.includes('bombillo') || lowerText.includes('led') || lowerText.includes('lámpara') || lowerText.includes('lampara')) {
       category = 'Iluminación';
     } else if (lowerText.includes('audifono') || lowerText.includes('sonido') || lowerText.includes('humidificador') || lowerText.includes('bocina') || lowerText.includes('speaker') || lowerText.includes('sound')) {
       category = 'Audio';
     } else if (lowerText.includes('cable') || lowerText.includes('cargador') || lowerText.includes('cover') || lowerText.includes('protector')) {
       category = 'Accesorios';
+    }
+    
+    let price = 0;
+    if (cost > 0) {
+      if (cost < 200) {
+        price = cost * 2.5; // +150% ganancia
+      } else if (cost < 1000) {
+        price = cost * 2.0; // +100% ganancia
+      } else if (cost < 3000) {
+        price = cost * 1.5; // +50% ganancia
+      } else {
+        price = cost * 1.35; // +35% ganancia
+      }
+      price = Math.round(price / 10) * 10;
+    } else {
+      // Precio sugerido por categoría si no se especifica costo en la publicación
+      if (category === 'Mobiliario') price = 4500;
+      else if (category === 'Audio') price = 1250;
+      else if (category === 'Iluminación') price = 850;
+      else price = 450; // Accesorios
+    }
+
+    const videos = [...new Set(group.attachments.filter(a => a.toLowerCase().endsWith('.mp4')))];
+    for (const v of videos) {
+      const srcV = path.join(srcDir, v);
+      const destV = path.join(destDir, v);
+      if (fs.existsSync(srcV) && !fs.existsSync(destV)) {
+        try {
+          if (fs.statSync(srcV).size > 0) fs.copyFileSync(srcV, destV);
+        } catch (e) {}
+      }
     }
 
     const cleanSlug = title
@@ -206,6 +252,7 @@ function sync() {
       price,
       image: `TeloCorp/images/${images[0]}`,
       images: images.slice(1).map(img => `TeloCorp/images/${img}`),
+      video: videos.length > 0 ? `TeloCorp/images/${videos[0]}` : '',
       category,
       date: group.timeStr,
       originalText: combinedText

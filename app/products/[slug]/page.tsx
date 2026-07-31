@@ -16,14 +16,10 @@ interface Props {
   params: Promise<{ slug: string }>
 }
 
-async function getProduct(slug: string): Promise<Product | null> {
-  const supabase = await createSupabaseServer()
-  const { data } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', slug)
-    .single()
-  return data as Product | null
+import { getSingleProduct } from '@/lib/get-products'
+
+async function getProduct(slug: string) {
+  return await getSingleProduct(slug)
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

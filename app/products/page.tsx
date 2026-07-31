@@ -1,4 +1,4 @@
-import { createSupabaseServer } from '@/lib/supabase-server'
+import { getAllProducts } from '@/lib/get-products'
 import { BRAND } from '@/lib/utils'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -20,51 +20,43 @@ interface Props {
 
 export default async function ProductsPage({ searchParams }: Props) {
   const params = await searchParams
-  const supabase = await createSupabaseServer()
-
-  // Build query
-  let query = supabase
-    .from('products')
-    .select('*')
-    .eq('active', true)
+  let products = await getAllProducts()
 
   // Filter by category
   if (params.category) {
-    query = query.eq('category', params.category)
+    products = products.filter(p => p.category.toLowerCase() === params.category!.toLowerCase())
   }
 
-  // Search by title
+  // Search by title or description
   if (params.q) {
-    query = query.ilike('title', `%${params.q}%`)
+    const qLower = params.q.toLowerCase()
+    products = products.filter(p => 
+      p.title.toLowerCase().includes(qLower) || 
+      (p.description && p.description.toLowerCase().includes(qLower))
+    )
   }
 
   // Sort
   switch (params.sort) {
     case 'price_asc':
-      query = query.order('price', { ascending: true })
+      products.sort((a, b) => a.price - b.price)
       break
     case 'price_desc':
-      query = query.order('price', { ascending: false })
+      products.sort((a, b) => b.price - a.price)
       break
     case 'popular':
-      query = query.order('sold', { ascending: false })
+      products.sort((a, b) => (b.sold || 0) - (a.sold || 0))
       break
     case 'rating':
-      query = query.order('rating', { ascending: false })
+      products.sort((a, b) => (b.rating || 0) - (a.rating || 0))
       break
     default:
-      query = query.order('created_at', { ascending: false })
+      // Keep default order
+      break
   }
 
-  const { data: products } = await query
-
-  // Get distinct categories for filter
-  const { data: allProducts } = await supabase
-    .from('products')
-    .select('category')
-    .eq('active', true)
-
-  const categories = [...new Set((allProducts || []).map(p => p.category).filter(Boolean))]
+  const allFullProducts = await getAllProducts()
+  const categories = [...new Set(allFullProducts.map(p => p.category).filter(Boolean))]
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8">
