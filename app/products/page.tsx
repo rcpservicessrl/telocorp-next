@@ -9,6 +9,8 @@ import { FlashSaleBanner } from '@/components/products/flash-sale-banner'
 import { WishlistButton } from '@/components/products/wishlist-button'
 import { ProductCardQuickAdd } from '@/components/products/product-card-quick-add'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: `${BRAND.sales} — Tienda de Tecnología`,
   description: 'Catálogo de tecnología y accesorios premium con envío express en República Dominicana.',

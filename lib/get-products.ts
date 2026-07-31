@@ -1,5 +1,8 @@
-import { createSupabaseServer } from '@/lib/supabase-server'
+import { createClient } from '@supabase/supabase-js'
 import localProducts from '../public/whatsapp-products.json'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://bhdictzvboiojyxorfiq.supabase.co'
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_AgpNN0k_KfW0moe6f1CKXg_qP2GKJCm'
 
 export interface CatalogProduct {
   id: string
@@ -23,7 +26,7 @@ export interface CatalogProduct {
 
 export async function getAllProducts(): Promise<CatalogProduct[]> {
   try {
-    const supabase = await createSupabaseServer()
+    const supabase = createClient(supabaseUrl, supabaseKey)
     const { data: dbProducts } = await supabase
       .from('products')
       .select('*')
