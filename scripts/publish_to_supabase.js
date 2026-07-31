@@ -75,6 +75,10 @@ async function publish() {
     }
   }
 
+  // Normaliza rutas relativas a URLs absolutas (convención de la DB)
+  const SITE = 'https://telocg.com/';
+  const toAbs = (u) => (!u ? u : (u.startsWith('http') ? u : SITE + u.replace(/^\//, '')));
+
   // 2. Format and Batch Upload (Upsert) products
   const productsToInsert = products.map(p => ({
     id: p.id,
@@ -82,8 +86,8 @@ async function publish() {
     description: p.description,
     cost: p.cost,
     price: p.price,
-    image: p.image,
-    images: p.images,
+    image: toAbs(p.image),
+    images: (p.images || []).map(toAbs),
     category: p.category,
     active: true,
     featured: false,
