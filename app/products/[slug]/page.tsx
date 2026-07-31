@@ -71,15 +71,15 @@ export default async function ProductPage({ params }: Props) {
 
           {/* Price */}
           <div className="flex items-baseline gap-3 mb-4">
-            {product.discount > 0 && (
+            {(product.discount ?? 0) > 0 && (
               <span className="text-[var(--c-text-muted)] line-through text-sm">
-                RD$ {Math.round(product.price / (1 - product.discount / 100)).toLocaleString()}
+                RD$ {Math.round(product.price / (1 - (product.discount ?? 0) / 100)).toLocaleString()}
               </span>
             )}
             <span className="text-3xl font-bold text-[var(--c-sales)]">
               RD$ {product.price.toLocaleString()}
             </span>
-            {product.discount > 0 && (
+            {(product.discount ?? 0) > 0 && (
               <Badge variant="danger">-{product.discount}%</Badge>
             )}
           </div>

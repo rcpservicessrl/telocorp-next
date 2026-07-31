@@ -76,7 +76,7 @@ export default async function ProductsPage({ searchParams }: Props) {
       {/* Flash sale countdown if products have discounts */}
       <FlashSaleBanner
         enabled={true}
-        productCount={(products || []).filter(p => p.discount > 0).length}
+        productCount={(products || []).filter(p => (p.discount ?? 0) > 0).length}
       />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
@@ -95,7 +95,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                   loading="lazy"
                 />
               )}
-              {p.discount > 0 && (
+              {(p.discount ?? 0) > 0 && (
                 <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">-{p.discount}%</span>
               )}
               <div className="absolute top-2 right-2">
@@ -109,9 +109,9 @@ export default async function ProductsPage({ searchParams }: Props) {
                 <span className="text-[var(--c-sales)] font-bold">
                   RD$ {p.price.toLocaleString()}
                 </span>
-                {p.discount > 0 && (
+                {(p.discount ?? 0) > 0 && (
                   <span className="text-xs text-[var(--c-text-dim)] line-through">
-                    RD$ {Math.round(p.price / (1 - p.discount / 100)).toLocaleString()}
+                    RD$ {Math.round(p.price / (1 - (p.discount ?? 0) / 100)).toLocaleString()}
                   </span>
                 )}
               </div>
